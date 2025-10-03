@@ -1,10 +1,10 @@
 
 use std::io;
 use rand::Rng;
-use std::cmp::Ordering;
+use std::fs::File;
+use std::io::Write;
 
 fn main() {
-    let secret_number = rand::rng().random_range(1..101);
 
     let resolve:bool = loop{
         println!("Enter number!");
@@ -26,7 +26,7 @@ fn main() {
                 }
             }
             Err(_) => {
-                x = 0;
+                //x = 0;
                 eprintln!("Error: x is not a number u64");
                 break true;
                 //std::process::exit(0);
@@ -37,22 +37,41 @@ fn main() {
         x += addition;
         println!("Your randomly changed number: {}", x);
 
-        let table = tablePowerFunction(x);
+        let table = table_power_function(x);
         println!("{:?}", table);
 
         println!("Let's check Collatz's Hipotesis");
-        let mut resTable = [false; 10];
+        let mut res_table = [false; 10];
 
         for i in 0.. 10 {
-            resTable[i] = collaz(table[i]);
+            res_table[i] = collaz(table[i]);
         }
-        println!("{:?}", resTable);
+        println!("{:?}", res_table);
 
 
+        //Etap 9
+        let mut file = match File::create("xyz.txt"){
+            Ok(file) => {file}
+            Err(_file) => {
+                break true;
+            }
+        };
+
+        let content = format!("{:?}", res_table);
+        //if let Err(_) = file.write_all(content.as_bytes()){
+        if file.write_all(content.as_bytes()).is_err(){
+            break true;
+        }
     };
+
+    if resolve {
+        println!("Program has ended due to error");
+    } else{
+        println!("Program has ended due to user action");
+    }
 }
 
-fn tablePowerFunction(x:u64) -> [u64; 10]{
+fn table_power_function(x:u64) -> [u64; 10]{
     let mut table = [x; 10];
     for i in 1..10 { // [a, b)!!!!
         table[i] = table[i-1] * x;
@@ -61,18 +80,18 @@ fn tablePowerFunction(x:u64) -> [u64; 10]{
 }
 
 fn collaz(mut number:u64) -> bool {
-    for i in 1.. 100
+    for _i in 1.. 100
     {
         if number == 1 {
             return true;
-        } else if (number % 2 == 0) {
-            number = number / 2;
+        } else if number.is_multiple_of(2) {
+            number /= 2;
         } else {
             number = number * 3 + 1;
         }
     }
 
-    if( number == 1){
+    if number == 1{
         return true;
     }
     false
