@@ -69,6 +69,19 @@ fn main() {
     } else{
         println!("Program has ended due to user action");
     }
+
+    let name:String = String::from("Kornel");
+    let my_favourite_numbers: (u64, u64) = (7, 7);
+
+    println!("Usage of Tuple before merging it with string");
+    println!("name: {}, Tuple: {}, {}", name, my_favourite_numbers.0, my_favourite_numbers.1);
+
+    let my_great_tuple = double_for_break(name);
+
+    println!("Usage of Tuple after having fun with it");
+    println!("Tuple: {}, {}, {}", my_great_tuple.0, my_great_tuple.1, my_great_tuple.2);
+
+
 }
 
 fn table_power_function(x:u64) -> [u64; 10]{
@@ -96,3 +109,26 @@ fn collaz(mut number:u64) -> bool {
     }
     false
 }
+
+fn double_for_break(name:String) -> (String, u64, u64) {
+    let mut ii = 1;
+    let mut jj = 1;
+    'higher_one: for i in 6..100{
+        'lower_one: for j in 6..100{
+            if i == 6 && j == 9 {
+                println!(" Omg what is going on {}{}", i, j);
+                ii = i;
+                jj = j;
+                break 'lower_one;
+            }
+            if i == 21 && j == 37 {
+                println!(" Omg what is going on {}{}", i, j);
+                ii = i;
+                jj = j;
+                break 'higher_one;
+            }
+        }
+    }
+    (name+" Dzieza", ii, jj)
+}
+
