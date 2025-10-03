@@ -7,7 +7,7 @@ fn main() {
     let secret_number = rand::rng().random_range(1..101);
 
     let resolve:bool = loop{
-        println!("Podaj liczbę!");
+        println!("Enter number!");
 
         let mut guess = String :: new();
         io::stdin()
@@ -27,18 +27,26 @@ fn main() {
             }
             Err(_) => {
                 x = 0;
-                eprintln!("Blad: to nie jest liczba w u64");
+                eprintln!("Error: x is not a number u64");
                 break true;
                 //std::process::exit(0);
             }
         }
 
         let addition = rand::rng().random_range(0..5);
-        x = x + addition;
+        x += addition;
         println!("Your randomly changed number: {}", x);
 
         let table = tablePowerFunction(x);
         println!("{:?}", table);
+
+        println!("Let's check Collatz's Hipotesis");
+        let mut resTable = [false; 10];
+
+        for i in 0.. 10 {
+            resTable[i] = collaz(table[i]);
+        }
+        println!("{:?}", resTable);
 
 
     };
@@ -50,4 +58,22 @@ fn tablePowerFunction(x:u64) -> [u64; 10]{
         table[i] = table[i-1] * x;
     }
     table
+}
+
+fn collaz(mut number:u64) -> bool {
+    for i in 1.. 100
+    {
+        if number == 1 {
+            return true;
+        } else if (number % 2 == 0) {
+            number = number / 2;
+        } else {
+            number = number * 3 + 1;
+        }
+    }
+
+    if( number == 1){
+        return true;
+    }
+    false
 }
