@@ -1,5 +1,6 @@
 use std::io;
-use crossterm::event::{self, Event, KeyCode};
+use std::time::Duration;
+use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use ratatui::buffer::Buffer;
 use ratatui::DefaultTerminal;
 use ratatui::layout::Rect;
@@ -57,19 +58,21 @@ impl App {
 
     fn handle_events(&mut self) -> io::Result<()> {
         if let Event::Key(key) = event::read()? {
-            match key.code {
-                KeyCode::Left => {
-                    if self.counter > 0 {
-                        self.counter -= 1;
+            if key.kind == KeyEventKind::Press {
+                match key.code {
+                    KeyCode::Left => {
+                        if self.counter > 0 {
+                            self.counter -= 1;
+                        }
                     }
+                    KeyCode::Right => {
+                        self.counter = self.counter.saturating_add(1);
+                    }
+                    KeyCode::Char('q') | KeyCode::Esc => {
+                        self.exit = true;
+                    }
+                    _ => {}
                 }
-                KeyCode::Right => {
-                    self.counter = self.counter.saturating_add(1);
-                }
-                KeyCode::Char('q') | KeyCode::Esc => {
-                    self.exit = true;
-                }
-                _ => {}
             }
         }
         Ok(())
