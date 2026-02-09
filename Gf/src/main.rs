@@ -18,11 +18,8 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
-    println!("OKNO SIE ZROBILO!!!");
-
     let kotek_bytes = include_bytes!("kotek.png");
     let kotek_texture = Texture2D::from_file_with_format(kotek_bytes, Some(ImageFormat::Png));
-    println!("Kotek zaladowany");
 
     let mut nie_pos = vec2(450.0, 350.0);
     let mut nie_target = nie_pos;
@@ -51,8 +48,6 @@ async fn main() {
                 nie_target.x = rand::gen_range(50.0, screen_width() - 150.0);
                 nie_target.y = rand::gen_range(100.0, screen_height() - 100.0);
                 nie_timer = 0.5;
-            } else {
-                show_kotek = false;
             }
 
             if nie_timer > 0.0 {
@@ -73,8 +68,8 @@ async fn main() {
             if show_kotek {
                 draw_texture_ex(
                     &kotek_texture,
-                    m_x - 50.0,
-                    m_y - 50.0,
+                    nie_pos.x + 10.0,
+                    nie_pos.y -110.0,
                     WHITE,
                     DrawTextureParams {
                         dest_size: Some(vec2(100.0, 100.0)),
