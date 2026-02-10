@@ -1,3 +1,4 @@
+use std::iter::repeat_n;
 use macroquad::audio::{load_sound, play_sound_once};
 //#![windows_subsystem = "windows"]
 use macroquad::prelude::*;
@@ -9,6 +10,7 @@ struct Serduszko {
     life: f32,
     size: f32,
     rotation: f32,
+    color: Color,
 }
 
 struct AppState {
@@ -27,6 +29,13 @@ impl AppState {
     }
 }
 
+struct TloSerce {
+    pos: Vec2,
+    speed: f32,
+    size: f32,
+    alpha: f32,
+}
+
 fn window_conf() -> Conf {
     Conf {
         window_title: "Niespodzianka!".to_owned(),
@@ -42,13 +51,14 @@ fn window_conf() -> Conf {
 }
 
 fn obsluguj_czasteczki(czasteczki: &mut Vec<Serduszko>, mouse_vec: Vec2, czy_zaakceptowano: bool) {
-    if !czy_zaakceptowano && czasteczki.len() < 50 {
+    if !czy_zaakceptowano && czasteczki.len() < 150 {
         czasteczki.push(Serduszko {
             pos: mouse_vec,
             vel: vec2(rand::gen_range(-1.5, 1.5), rand::gen_range(-1.5, 1.5)),
             life: 1.0,
             size: rand::gen_range(15.0, 30.0),
             rotation: rand::gen_range(0.0, 6.28),
+            color: Color::new(rand::gen_range(0.8, 1.0), 0.4, 0.6, 1.0),
         });
     }
 
@@ -66,15 +76,13 @@ fn obsluguj_czasteczki(czasteczki: &mut Vec<Serduszko>, mouse_vec: Vec2, czy_zaa
         if s.life <= 0.0 {
             czasteczki.remove(i);
         } else {
-            let color = if czy_zaakceptowano {
-                Color::new(rand::gen_range(0.8, 1.0), 0.2, rand::gen_range(0.4, 0.7), s.life.min(1.0))
-            } else {
-                Color::new(1.0, 0.4, 0.6, s.life)
-            };
+            // Wewnątrz pętli for:
+            let mut final_color = s.color;
+            final_color.a = s.life.min(1.0); // Aktualizujemy tylko przezroczystość
 
             draw_text_ex("<3", s.pos.x, s.pos.y, TextParams {
                 font_size: s.size as u16,
-                color,
+                color: final_color,
                 rotation: s.rotation,
                 ..Default::default()
             });
@@ -91,7 +99,26 @@ fn stworz_konfetti(czasteczki: &mut Vec<Serduszko>) {
             life: 2.0,
             size: rand::gen_range(15.0, 35.0),
             rotation: rand::gen_range(0.0, 6.28),
+            color: Color::new(rand::gen_range(0.8, 1.0), 0.4, 0.6, 1.0),
         });
+    }
+}
+
+fn obsluguj_dynamiczne_tlo(serca: &mut Vec<TloSerce>) {
+    if serca.len() < 10 {
+        serca.push(TloSerce{
+            pos: vec2(rand::gen_range(0.0, screen_width()), screen_height() + 50.0),
+            speed: rand::gen_range(0.5, 1.2),
+            size: rand::gen_range(60.0, 120.0),
+            alpha: rand::gen_range(0.05, 0.15),
+        });
+    }
+
+    for i in (0..serca.len()).rev() {
+        serca[i].pos.y -=serca[i].speed;
+        let color = Color::new(1.0, 0.5, 0.6, serca[i].alpha);
+        draw_text("<3", serca[i].pos.x, serca[i].pos.y, serca[i].size, color);
+        if serca[i].pos.y < -100.0 {serca.remove(i);}
     }
 }
 
@@ -99,9 +126,12 @@ fn stworz_konfetti(czasteczki: &mut Vec<Serduszko>) {
 async fn main() {
     let kotek_bytes = include_bytes!("kotek.png");
     let kotek_texture = Texture2D::from_file_with_format(kotek_bytes, Some(ImageFormat::Png));
+    let us_bytes = include_bytes!("us.png");
+    let us_texture = Texture2D::from_file_with_format(us_bytes, Some(ImageFormat::Png));
     let mut czasteczki: Vec<Serduszko> = Vec::new();
     let mut state = AppState::new();
-    // Wewnątrz main, przed loop
+    let mut tlo_serca: Vec<TloSerce> = Vec::new();
+
     let sound_boink = load_sound("boink.wav").await.expect("Nie znaleziono boink.wav");
     let sound_success = load_sound("success.wav").await.expect("Nie znaleziono success.wav");
     let sound_yippee = load_sound("yippee.wav").await.expect("Nie znaleziono success.wav");
@@ -209,14 +239,33 @@ async fn main() {
                 state.see_final = true;
             }
         }
-        else{
+        else {
+            obsluguj_dynamiczne_tlo(&mut tlo_serca);
+
+            let tint = Color::new(1.0, 1.0, 1.0, 0.4);
+            draw_texture_ex(
+                &us_texture,
+                0.0, 0.0,
+                tint,
+                DrawTextureParams {
+                    dest_size: Some(vec2(screen_width(), screen_height())), //todo?
+                    ..Default::default()
+                },
+            );
 
             if should_be_played {
                 play_sound_once(&sound_yippee);
                 should_be_played = false;
             }
-            draw_text("Hura! <3", 320.0, 250.0, 60.0, RED);
-            draw_text("Gratulacje, zostalas moja Walentynka!", 130.0, 350.0, 40.0, BLACK);
+
+            let glowny_tekst = "US :33";
+            let podtekst = "Gratulacje, zostalas moja Walentynka!";
+
+            draw_text(glowny_tekst, 323.0, 253.0, 60.0, Color::new(0.0, 0.0, 0.0, 0.2));
+            draw_text(glowny_tekst, 320.0, 250.0, 60.0, RED);
+
+            draw_text(podtekst, 110.0, 352.0, 40.0, Color::new(0.0, 0.0, 0.0, 0.1));
+            draw_text(podtekst, 110.0, 350.0, 40.0, BLACK);
 
             stworz_konfetti(&mut czasteczki);
         }
